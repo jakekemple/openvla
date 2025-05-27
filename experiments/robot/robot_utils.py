@@ -17,7 +17,7 @@ ACTION_DIM = 7
 DATE = time.strftime("%Y_%m_%d")
 DATE_TIME = time.strftime("%Y_%m_%d-%H_%M_%S")
 DEVICE = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-np.set_printoptions(formatter={"float": lambda x: "{0:0.3f}".format(x)})
+np.set_printoptions(formatter={"float": lambda x: f"{x:0.3f}"})
 
 # Initialize system prompt for OpenVLA v0.1.
 OPENVLA_V01_SYSTEM_PROMPT = (

@@ -58,17 +58,17 @@ class GenerateConfig:
     init_ee_pos: List[float] = field(default_factory=lambda: [0.3, -0.09, 0.26])
     init_ee_quat: List[float] = field(default_factory=lambda: [0, -0.259, 0, -0.966])
     bounds: List[List[float]] = field(default_factory=lambda: [
-            [0.1, -0.20, -0.01, -1.57, 0],
-            [0.45, 0.25, 0.30, 1.57, 0],
+            [0.05, -0.25, -0.02, -1.57, 0],
+            [0.50, 0.30, 0.35, 1.57, 0],
         ]
     )
 
-    camera_topics: List[Dict[str, str]] = field(default_factory=lambda: [{"name": "/blue/image_raw"}])
+    camera_topics: List[Dict[str, str]] = field(default_factory=lambda: [{"name": "/camera/camera_stream/color/image_raw"}])
 
     blocking: bool = False                                      # Whether to use blocking control
     max_episodes: int = 50                                      # Max number of episodes to run
     max_steps: int = 60                                         # Max number of timesteps per episode
-    control_frequency: float = 5                                # WidowX control frequency
+    control_frequency: float = 0.5                               # WidowX control frequency (much slower for smooth motion)
 
     #################################################################################################################
     # Utils
@@ -108,7 +108,11 @@ def eval_model_in_bridge_env(cfg: GenerateConfig) -> None:
         task_label = get_next_task_label(task_label)
 
         # Reset environment
-        obs, _ = env.reset()
+        reset_result = env.reset()
+        if isinstance(reset_result, tuple):
+            obs, _ = reset_result
+        else:
+            obs = reset_result
 
         # Setup
         t = 0
@@ -120,8 +124,8 @@ def eval_model_in_bridge_env(cfg: GenerateConfig) -> None:
             rollout_actions = []
 
         # Start episode
-        input(f"Press Enter to start episode {episode_idx+1}...")
-        print("Starting episode... Press Ctrl-C to terminate episode early!")
+        print(f"Starting episode {episode_idx+1}...")
+        print("Episode running... Press Ctrl-C to terminate episode early!")
         last_tstamp = time.time()
         while t < cfg.max_steps:
             try:
@@ -156,8 +160,12 @@ def eval_model_in_bridge_env(cfg: GenerateConfig) -> None:
                         rollout_actions.append(action)
 
                     # Execute action
-                    print("action:", action)
-                    obs, _, _, _, _ = env.step(action)
+                    print("action:", action.tolist())
+                    step_result = env.step(action)
+                    if len(step_result) == 4:
+                        obs, _, _, _ = step_result
+                    else:
+                        obs, _, _, _, _ = step_result
                     t += 1
 
             except (KeyboardInterrupt, Exception) as e:
@@ -174,10 +182,9 @@ def eval_model_in_bridge_env(cfg: GenerateConfig) -> None:
         if cfg.save_data:
             save_rollout_data(replay_images, rollout_images, rollout_states, rollout_actions, idx=episode_idx)
 
-        # Redo episode or continue
-        if input("Enter 'r' if you want to redo the episode, or press Enter to continue: ") != "r":
-            episode_idx += 1
+        # Continue to next episode automatically
+        episode_idx += 1
 
 
 if __name__ == "__main__":
-    eval_model_in_bridge_env()
+    eval_model_in_bridge_env() 
