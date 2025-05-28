@@ -118,6 +118,7 @@ def eval_model_in_bridge_env(cfg: GenerateConfig) -> None:
         t = 0
         step_duration = 1.0 / cfg.control_frequency
         replay_images = []
+        episode_start_time = None  # Timer for episode elapsed time from first inference
         if cfg.save_data:
             rollout_images = []
             rollout_states = []
@@ -144,6 +145,11 @@ def eval_model_in_bridge_env(cfg: GenerateConfig) -> None:
                     # Get preprocessed image
                     obs["full_image"] = get_preprocessed_image(obs, resize_size)
 
+                    # Start episode timer right before first inference
+                    if episode_start_time is None:
+                        episode_start_time = time.time()
+                        print("Starting episode timer for inference tracking...")
+
                     # Query model to get action
                     action = get_action(
                         cfg,
@@ -167,6 +173,11 @@ def eval_model_in_bridge_env(cfg: GenerateConfig) -> None:
                     else:
                         obs, _, _, _, _ = step_result
                     t += 1
+
+                    # Print elapsed time since first inference
+                    if episode_start_time is not None:
+                        elapsed_time = time.time() - episode_start_time
+                        print(f"Episode elapsed time since first inference: {elapsed_time:.2f} sec")
 
             except (KeyboardInterrupt, Exception) as e:
                 if isinstance(e, KeyboardInterrupt):
