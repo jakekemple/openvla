@@ -67,7 +67,7 @@ class GenerateConfig:
 
     blocking: bool = False                                      # Whether to use blocking control
     max_episodes: int = 50                                      # Max number of episodes to run
-    max_steps: int = 60                                         # Max number of timesteps per episode
+    max_steps: int = 80                                         # Max number of timesteps per episode
     control_frequency: float = 0.5                               # WidowX control frequency (much slower for smooth motion)
 
     #################################################################################################################
