@@ -63,7 +63,7 @@ class GenerateConfig:
         ]
     )
 
-    camera_topics: List[Dict[str, str]] = field(default_factory=lambda: [{"name": "/camera/camera_stream/color/image_raw"}])
+    camera_topics: List[Dict[str, str]] = field(default_factory=lambda: [{"name": "/camera/camera_stream/color/image_raw", "dtype": "rgb8"}])
 
     blocking: bool = False                                      # Whether to use blocking control
     max_episodes: int = 50                                      # Max number of episodes to run
